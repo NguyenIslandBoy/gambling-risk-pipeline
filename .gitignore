@@ -1,0 +1,22 @@
+# Raw data — privacy restrictions, do not commit
+data/raw/
+
+# Generated database and model files — too large for git
+data/processed/
+src/models/*.pkl
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
