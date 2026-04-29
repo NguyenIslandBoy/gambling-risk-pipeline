@@ -1,5 +1,8 @@
 # Gambling Risk Pipeline
 
+![CI](https://github.com/NguyenIslandBoy/gambling-risk-pipeline/actions/workflows/ci.yml/badge.svg)
+
+
 Early warning system that predicts whether a new online gambling subscriber will trigger a Responsible Gambling (RG) intervention, based on their first 31 days of betting behaviour.
 
 **AUROC 0.746** on held-out validation set, beating the original paper's logistic regression baseline (~0.70).
@@ -36,9 +39,10 @@ gambling-risk-pipeline/
 │   └── api/
 │       └── app.py             # FastAPI inference endpoint
 ├── tests/
-│   ├── test_ingest.py
-│   ├── test_features.py
-│   └── test_api.py
+│   ├── test_gambling_pipeline.py  # 64 unit tests (pytest, no DB required)
+│   ├── test_ingest.py             # Integration tests (requires live DB)
+│   ├── test_features.py           # Integration tests (requires live DB)
+│   └── test_api.py                # Integration tests (requires trained model)
 ├── examples/
 │   ├── single_user.json       # Example high-risk user payload
 │   └── test_api.py            # Live API smoke test
@@ -80,8 +84,8 @@ uvicorn src.api.app:app --reload --port 8000
 
 **5. Test**
 ```bash
-pytest tests/ -v
-python examples/test_api.py
+pytest tests/test_gambling_pipeline.py -v   # unit tests (no data needed)
+pytest tests/ -v                            # full suite (requires DB + model)
 ```
 
 Swagger UI available at `http://localhost:8000/docs`.
