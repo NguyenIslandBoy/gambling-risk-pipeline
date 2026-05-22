@@ -24,6 +24,7 @@ The problem structure maps directly to **fraud/AML detection** in fintech: binar
 ```
 gambling-risk-pipeline/
 ├── config.py                  # All paths and constants
+├── pipeline.py                # Prefect orchestration (4 tasks, retries, logging)
 ├── data/
 │   ├── raw/                   # Original .dat files (not committed)
 │   └── processed/             # DuckDB database (generated)
@@ -40,9 +41,13 @@ gambling-risk-pipeline/
 │       └── app.py             # FastAPI inference endpoint
 ├── tests/
 │   ├── test_gambling_pipeline.py  # 64 unit tests (pytest, no DB required)
+│   ├── test_pipeline.py           # 18 Prefect flow structure tests
 │   ├── test_ingest.py             # Integration tests (requires live DB)
 │   ├── test_features.py           # Integration tests (requires live DB)
 │   └── test_api.py                # Integration tests (requires trained model)
+├── img/
+│   ├── prefect_run.png            # Prefect UI screenshot
+│   └── api_ui_sc.png              # FastAPI Swagger UI screenshot
 ├── examples/
 │   ├── single_user.json       # Example high-risk user payload
 │   └── test_api.py            # Live API smoke test
@@ -68,11 +73,14 @@ Raw Datset III.Responsible gambling details_Gray_LaPlante_PAB_2012.dat
 Download from [The Transparency Project](http://www.thetransparencyproject.org/download_index.php).
 
 **3. Run the pipeline**
-```bash
+```powershell
+# Orchestrated (recommended)
+python pipeline.py
+
+# Or manually, step by step
 python src/ingest/loader.py       # verify files load correctly
 python src/ingest/database.py     # write to DuckDB
 python src/ingest/validate.py     # sanity checks
-
 python src/features/engineer.py   # build feature table (~3 min)
 python src/models/train.py        # train + evaluate + save model (~5 min)
 ```
@@ -89,6 +97,50 @@ pytest tests/ -v                            # full suite (requires DB + model)
 ```
 
 Swagger UI available at `http://localhost:8000/docs`.
+
+---
+
+## Pipeline Orchestration
+
+The pipeline is orchestrated with [Prefect](https://prefect.io), providing task-level retries, dependency enforcement, and a local observability UI.
+
+![Prefect pipeline run](img/prefect_run.png)
+
+| Task | Retries | Depends on |
+|---|---|---|
+| `ingest` | 2 | — |
+| `validate` | 0 | ingest |
+| `engineer_features` | 1 | validate |
+| `train_model` | 1 | engineer_features |
+
+`validate` has zero retries intentionally — a failing sanity check means the data is wrong, not a transient error. The pipeline stops immediately rather than training on bad data.
+
+**Run with UI:**
+```powershell
+prefect server start    # terminal 1 — opens http://localhost:4200
+python pipeline.py      # terminal 2
+```
+
+**Run headless:**
+```powershell
+python pipeline.py                                        # full run
+python pipeline.py --skip-ingest                          # skip .dat loading
+python pipeline.py --skip-ingest --skip-engineering       # jump to training
+```
+
+**Add FastAPI UI screenshot** — add this at the bottom of the API section, replacing the existing closing line:
+
+```markdown
+![FastAPI Swagger UI](img/api_ui_sc.png)
+```
+
+Then:
+
+```powershell
+git add README.md img/
+git commit -m "docs: add Prefect orchestration section, API screenshot, update structure"
+git push origin main
+```
 
 ---
 

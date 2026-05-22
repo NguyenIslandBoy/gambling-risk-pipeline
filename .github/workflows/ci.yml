@@ -25,4 +25,4 @@ jobs:
 
       - name: Run unit tests
         run: |
-          pytest tests/test_gambling_pipeline.py -v --cov=src --cov-report=term-missing
+          pytest tests/test_gambling_pipeline.py tests/test_pipeline.py -v --cov=src --cov=pipeline --cov-report=term-missing
