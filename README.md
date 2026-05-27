@@ -104,7 +104,7 @@ Swagger UI available at `http://localhost:8000/docs`.
 
 The pipeline is orchestrated with [Prefect](https://prefect.io), providing task-level retries, dependency enforcement, and a local observability UI.
 
-![Prefect pipeline run](img/prefect_run.png)
+![Prefect pipeline run](./img/perfect-run.png)
 
 | Task | Retries | Depends on |
 |---|---|---|
